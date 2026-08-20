@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор стоимости каркасного дома</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 21h18"/>
+          <path d="M5 21V8l7-5 7 5v13"/>
+          <path d="M9 21v-6h6v6"/>
+          <path d="M12 8v.01M12 11v.01"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Калькулятор стоимости каркасного дома</h1>
+        <p class="subtitle">Сметный справочник · 2026</p>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="data-chip" id="data-chip" title="Источник данных">
+        <span class="dot"></span>
+        <span id="data-chip-text">Загрузка данных…</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="btn-update" title="Скачать актуальный прайс с Яндекс Диска">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+          Обновить данные
+        </button>
+        <button class="btn btn-ghost" id="btn-load" title="Загрузить актуальный прайс (xlsx)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+          Загрузить данные
+        </button>
+        <button class="btn btn-primary" id="btn-export" title="Сохранить смету в Excel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Экспорт
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <section class="panel params-panel">
+        <h3 class="panel-title">Параметры объекта</h3>
+        <div class="field">
+          <label for="area">Площадь дома, м²</label>
+          <div class="input-wrap">
+            <input type="number" id="area" min="0" step="1" value="120">
+          </div>
+          <div class="hint">Автоматически применяется к позициям «на м² площади дома»</div>
+        </div>
+        <div class="field">
+          <label>Уровень цен в справочнике</label>
+          <div class="tier-group" id="tier-group">
+            <button data-tier="min">Мин</button>
+            <button data-tier="base" class="active">База</button>
+            <button data-tier="max">Макс</button>
+          </div>
+          <button class="btn btn-small btn-outline" id="btn-apply-tier">Применить ко всем позициям</button>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat"><span>Позиций</span><b id="stat-items">0</b></div>
+          <div class="mini-stat"><span>Включено</span><b id="stat-included">0</b></div>
+          <div class="mini-stat"><span>Разделов</span><b id="stat-sections">0</b></div>
+        </div>
+      </section>
+
+      <section class="panel nav-panel">
+        <h3 class="panel-title">Разделы</h3>
+        <div id="sections-nav" class="sections-nav"></div>
+      </section>
+
+      <section class="panel refs-panel">
+        <h3 class="panel-title">Контрольные ориентиры</h3>
+        <div id="controls-list" class="controls-list"></div>
+      </section>
+    </aside>
+
+    <main class="content">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="search" placeholder="Поиск: каркас, утепление, окна, кровля, сваи…" autocomplete="off">
+        </div>
+        <div class="chip-row" id="status-filters"></div>
+        <div class="chip-row" id="type-filters"></div>
+      </div>
+      <div id="sections-container" class="sections-container"></div>
+    </main>
+  </div>
+
+  <footer class="totalbar">
+    <div class="total-left">
+      <button class="btn btn-total" id="btn-total" title="Показать итоговую стоимость">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 11h8M8 16h5"/></svg>
+        Итог
+      </button>
+      <div class="total-main">
+        <div class="total-head">
+          <span class="total-label">Итоговая стоимость объекта</span>
+          <span class="total-range" id="total-range"></span>
+        </div>
+        <div class="total-amount" id="total-amount">0 ₽</div>
+        <div class="total-foot">
+          <span id="total-info">Позиций: 0 · Включено: 0</span>
+        </div>
+      </div>
+    </div>
+    <div class="total-actions">
+      <button class="btn btn-primary" id="btn-start">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>
+        Начать расчет
+      </button>
+      <button class="btn btn-accent" id="btn-recalc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Пересчитать
+      </button>
+      <button class="btn btn-ghost" id="btn-new">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Новый расчет
+      </button>
+    </div>
+    <div class="total-side">
+      <div class="total-tier" id="tier-min"><span>Мин</span><b>0 ₽</b></div>
+      <div class="total-tier" id="tier-base"><span>База</span><b>0 ₽</b></div>
+      <div class="total-tier" id="tier-max"><span>Макс</span><b>0 ₽</b></div>
+    </div>
+  </footer>
+</div>
+
+<input type="file" id="file-input" accept=".xlsx,.xlsm" hidden>
+
+<!-- Модальное окно «Итог» -->
+<div class="modal-overlay" id="total-modal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Итог по объекту</h2>
+      <button class="modal-close" id="modal-close" title="Закрыть">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-total">
+        <div class="modal-total-label">Общая стоимость</div>
+        <div class="modal-total-amount" id="modal-total-amount">0 ₽</div>
+        <div class="modal-total-range" id="modal-total-range"></div>
+      </div>
+      <div class="modal-section">
+        <h3>Разбивка по разделам</h3>
+        <table class="breakdown" id="breakdown-table">
+          <thead><tr><th>Раздел</th><th>Позиций</th><th>Сумма</th><th>Доля</th></tr></thead>
+          <tbody id="breakdown-body"></tbody>
+        </table>
+      </div>
+      <div class="modal-section">
+        <h3>Сверка с контрольными бюджетами</h3>
+        <div id="controls-compare" class="controls-compare"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="modal-close2">Закрыть</button>
+      <button class="btn btn-primary" id="modal-export">Экспорт сметы</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
